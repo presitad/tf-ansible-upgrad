@@ -6,7 +6,6 @@ resource "tls_private_key" "task1_p_key" {
   algorithm = "RSA"
 }
 
-
 resource "aws_key_pair" "task1-key" {
   key_name   = "task1-key"
   public_key = tls_private_key.task1_p_key.public_key_openssh
@@ -70,12 +69,14 @@ resource "aws_subnet" "My_VPC_Subnet4" {
     Name = "My VPC private Subnet4"
   }
 }
+
 resource "aws_internet_gateway" "My_VPC_GW" {
   vpc_id = aws_vpc.My_VPC.id
   tags = {
     Name = "My VPC Internet Gateway"
   }
 }
+
 resource "aws_route_table" "My_VPC_route_table" {
   vpc_id = aws_vpc.My_VPC.id
   tags = {
@@ -176,10 +177,6 @@ resource "aws_security_group" "only_ssh_sql_bositon" {
   name        = "only_ssh_sql_bositon"
   description = "allow ssh bositon inbound traffic"
   vpc_id      = aws_vpc.My_VPC.id
-
-
-
-
   ingress {
     description     = "Only ssh_sql_bositon in public subnet"
     from_port       = 22
@@ -189,8 +186,6 @@ resource "aws_security_group" "only_ssh_sql_bositon" {
 
   }
 
-
-
   egress {
     from_port        = 0
     to_port          = 0
@@ -198,9 +193,6 @@ resource "aws_security_group" "only_ssh_sql_bositon" {
     cidr_blocks      = ["0.0.0.0/0"]
     ipv6_cidr_blocks = ["::/0"]
   }
-
-
-
   tags = {
     Name = "only_ssh_sql_bositon"
   }
@@ -211,34 +203,29 @@ resource "aws_eip" "abhi_ip" {
 }
 
 
-resource "aws_nat_gateway" "abhingw" {
+resource "aws_nat_gateway" "myngw" {
   depends_on    = [aws_eip.abhi_ip]
   allocation_id = aws_eip.abhi_ip.id
   subnet_id     = aws_subnet.My_VPC_Subnet.id
   tags = {
-    Name = "abhingw"
+    Name = "myngw"
   }
 }
 
 // Route table for SNAT in private subnet
 
 resource "aws_route_table" "private_subnet_route_table" {
-  depends_on = [aws_nat_gateway.abhingw]
+  depends_on = [aws_nat_gateway.myngw]
   vpc_id     = aws_vpc.My_VPC.id
-
-
   route {
     cidr_block = "0.0.0.0/0"
-    gateway_id = aws_nat_gateway.abhingw.id
+    gateway_id = aws_nat_gateway.myngw.id
   }
-
-
 
   tags = {
     Name = "private_subnet_route_table"
   }
 }
-
 
 resource "aws_route_table_association" "private_subnet_route_table_association" {
   depends_on     = [aws_route_table.private_subnet_route_table]
@@ -247,8 +234,8 @@ resource "aws_route_table_association" "private_subnet_route_table_association" 
 }
 
 resource "aws_instance" "BASTION" {
-  ami                    = "ami-0dc2d3e4c0f9ebd18"
-  instance_type          = "t2.micro"
+  ami                    = var.ami
+  instance_type          = var.instance_type
   subnet_id              = aws_subnet.My_VPC_Subnet.id
   vpc_security_group_ids = [aws_security_group.bositon_host_sg.id]
   key_name               = "task1-key"
@@ -257,9 +244,10 @@ resource "aws_instance" "BASTION" {
     Name = "bastionhost"
   }
 }
+
 resource "aws_instance" "jenkins" {
-  ami                    = "ami-0dc2d3e4c0f9ebd18"
-  instance_type          = "t2.micro"
+  ami                    = var.ami
+  instance_type          = var.instance_type
   subnet_id              = aws_subnet.My_VPC_Subnet2.id
   vpc_security_group_ids = [aws_security_group.allow_web_sg.id, aws_security_group.only_ssh_sql_bositon.id]
   key_name               = "task1-key"
@@ -268,9 +256,10 @@ resource "aws_instance" "jenkins" {
     Name = "jenkins"
   }
 }
+
 resource "aws_instance" "app" {
-  ami                    = "ami-0dc2d3e4c0f9ebd18"
-  instance_type          = "t2.micro"
+  ami                    = var.ami
+  instance_type          = var.instance_type
   subnet_id              = aws_subnet.My_VPC_Subnet.id
   vpc_security_group_ids = [aws_security_group.allow_http.id]
   key_name               = "task1-key"
@@ -280,3 +269,14 @@ resource "aws_instance" "app" {
     Name = "app"
   }
 }
+
+# resource "aws_lb" "alb" {
+#   name               = "alb"
+#   internal           = false
+#   load_balancer_type = "application"
+#   subnets            = aws_subnet.public_subnet.*.id
+
+#   tags = {
+#     Name = "Load Balancer"
+#   }
+# }
