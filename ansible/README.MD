@@ -1,13 +1,3 @@
-## Steps for tasks 1
-1.Install terraform on local
-2.Provision resources using terraform file.
-`terraform init, terraform plan, terraform apply`
-
-
-
-
-
-## Steps for Task2
 # Steps to install docker using ansible
 
 1. copy invertory and playbook.yaml in bastion at /etc/ansible location
