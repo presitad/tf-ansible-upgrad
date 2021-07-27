@@ -270,13 +270,3 @@ resource "aws_instance" "app" {
   }
 }
 
-# resource "aws_lb" "alb" {
-#   name               = "alb"
-#   internal           = false
-#   load_balancer_type = "application"
-#   subnets            = aws_subnet.public_subnet.*.id
-
-#   tags = {
-#     Name = "Load Balancer"
-#   }
-# }
