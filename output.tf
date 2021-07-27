@@ -2,8 +2,8 @@ output "VPC" {
   value = aws_vpc.My_VPC.arn
 }
 
-output "Internet-gateway" {
-  value = aws_internet_gateway.My_VPC_GW.arn
+output "Internet-gateway-IP" {
+  value = aws_internet_gateway.My_VPC_GW.ip
 }
 
 output "Public-Subnet" {
@@ -39,6 +39,6 @@ output "App-IP" {
 }
 
 
-# output "Load-Balancer" {
-#   value = aws_lb.alb.arn
-# }
+output "Load-Balancer" {
+  value = aws_lb.alb.arn
+}
